@@ -57,6 +57,11 @@ open-source use.
 - [Recommended Hardware](#recommended-hardware)
 - [Quick Start](#quick-start)
 - [Reproduction Tutorial](#reproduction-tutorial)
+  - [1. Prepare Data And Seeds](#1-prepare-data-and-seeds)
+  - [2. Run The Fixed CUDA Core Suite](#2-run-the-fixed-cuda-core-suite)
+  - [3. Run The Extended Ablation Suite](#3-run-the-extended-ablation-suite)
+  - [4. Generate Paper Tables](#4-generate-paper-tables)
+  - [5. Generate Paper Figures](#5-generate-paper-figures)
 - [Advanced Utilities](#advanced-utilities)
 - [Output Layout](#output-layout)
 - [Data](#data)
@@ -147,6 +152,14 @@ are written in exactly the ticker order listed above.
 The recommended workflow is fixed end-to-end: download the three predefined
 Yahoo panels, download the VIXY proxy, then run the CUDA scripts with
 the published 20-seed list in `configs/seeds_repro_20.txt`.
+
+| Step | Action |
+| ---: | --- |
+| 1 | [Prepare data & seeds](#1-prepare-data-and-seeds) |
+| 2 | [Run the fixed CUDA core suite](#2-run-the-fixed-cuda-core-suite) |
+| 3 | [Run the extended ablation suite](#3-run-the-extended-ablation-suite) |
+| 4 | [Generate paper tables](#4-generate-paper-tables) |
+| 5 | [Generate paper figures](#5-generate-paper-figures) |
 
 ### 1. Prepare Data And Seeds
 
