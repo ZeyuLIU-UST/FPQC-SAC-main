@@ -1,0 +1,135 @@
+project: FPQC-SAC
+output_root: outputs
+
+defaults:
+  train:
+    data_path: ""
+    train_start: "2013-01-02"
+    train_end: "2018-12-31"
+    test_start: "2019-01-02"
+    test_end: "2021-08-31"
+    timesteps: 25000
+    fix_seed_list_file: configs/seeds_repro_20.txt
+    parallel_workers: 1
+    reward_scaling: 0.0001
+    disable_lookahead: true
+    disable_vix: false
+    vix_path: data/raw/vix_panel.csv
+    observation_history_window: 1
+    name_prefix: baseline
+  eval:
+    data_path: ""
+    train_start: "2013-01-02"
+    train_end: "2018-12-31"
+    test_start: "2019-01-02"
+    test_end: "2023-12-31"
+    reward_scaling: 0.0001
+    disable_lookahead: true
+    disable_vix: false
+    vix_path: data/raw/vix_panel.csv
+    observation_history_window: 1
+    output_subdir: eval_oos
+
+experiments:
+  - id: fpqc_sac
+    description: FPQC-SAC evaluated over the full 2019-2023 test window.
+    train:
+      algorithms: sac
+      sac_use_quantum_feature: true
+      sac_n_qubits: 7
+      sac_quantum_n_layers: 2
+      sac_quantum_device: cpu
+      sac_quantum_entanglement_topology: ring
+      sac_quantum_embedding_type: angle
+    eval:
+      algorithms: sac
+      group_name: fpqc_sac_oos
+    report:
+      label: FPQC-SAC
+      category: OOS Baseline
+      order: 10
+
+  - id: ppo
+    description: PPO baseline evaluated over the full 2019-2023 test window.
+    train:
+      algorithms: ppo
+    eval:
+      algorithms: ppo
+      group_name: ppo_oos
+    report:
+      label: PPO
+      category: OOS Baseline
+      order: 20
+
+  - id: ddpg
+    description: DDPG baseline evaluated over the full 2019-2023 test window.
+    train:
+      algorithms: ddpg
+    eval:
+      algorithms: ddpg
+      group_name: ddpg_oos
+    report:
+      label: DDPG
+      category: OOS Baseline
+      order: 30
+
+  - id: sac
+    description: SAC baseline evaluated over the full 2019-2023 test window.
+    train:
+      algorithms: sac
+    eval:
+      algorithms: sac
+      group_name: sac_oos
+    report:
+      label: SAC
+      category: OOS Baseline
+      order: 40
+
+  - id: td3
+    description: TD3 baseline evaluated over the full 2019-2023 test window.
+    train:
+      algorithms: td3
+    eval:
+      algorithms: td3
+      group_name: td3_oos
+    report:
+      label: TD3
+      category: OOS Baseline
+      order: 50
+
+  - id: a2c
+    description: A2C baseline evaluated over the full 2019-2023 test window.
+    train:
+      algorithms: a2c
+    eval:
+      algorithms: a2c
+      group_name: a2c_oos
+    report:
+      label: A2C
+      category: OOS Baseline
+      order: 60
+
+  - id: tqc
+    description: TQC baseline evaluated over the full 2019-2023 test window.
+    train:
+      algorithms: tqc
+    eval:
+      algorithms: tqc
+      group_name: tqc_oos
+    report:
+      label: TQC
+      category: OOS Baseline
+      order: 70
+
+plots:
+  - id: oos_median_curves
+    script: scripts/plot_oos_median_curves.py
+    args:
+      config: configs/oos_baseline_curves.yaml
+      eval_subdir: eval_oos
+      split_date: "2021-08-31"
+      test_start: "2019-01-02"
+      test_end: "2023-12-31"
+      out: outputs/figures/oos_median_curves.png
+      write_summary_csv: outputs/figures/input/oos_median_summary.csv
+      write_raw_csv: outputs/figures/input/oos_all_seed_raw_curves.csv

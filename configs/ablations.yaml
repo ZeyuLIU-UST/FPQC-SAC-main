@@ -1,0 +1,94 @@
+project: FPQC-SAC
+output_root: outputs
+
+defaults:
+  train:
+    data_path: ""
+    train_start: "2013-01-02"
+    train_end: "2018-12-31"
+    test_start: "2019-01-02"
+    test_end: "2021-08-31"
+    timesteps: 25000
+    fix_seed_list_file: configs/seeds_repro_20.txt
+    parallel_workers: 1
+    reward_scaling: 0.0001
+    disable_lookahead: true
+    disable_vix: false
+    vix_path: data/raw/vix_panel.csv
+    observation_history_window: 1
+    algorithms: sac
+    sac_use_quantum_feature: true
+    sac_n_qubits: 7
+    sac_quantum_device: cpu
+    sac_quantum_embedding_type: angle
+    name_prefix: baseline
+  eval:
+    data_path: ""
+    train_start: "2013-01-02"
+    train_end: "2018-12-31"
+    test_start: "2019-01-02"
+    test_end: "2021-08-31"
+    reward_scaling: 0.0001
+    disable_lookahead: true
+    disable_vix: false
+    vix_path: data/raw/vix_panel.csv
+    observation_history_window: 1
+    algorithms: sac
+
+experiments:
+  - id: fpqc_sac_no_cnot
+    description: FPQC-SAC without CNOT entanglement.
+    train:
+      sac_quantum_n_layers: 2
+      sac_quantum_no_entanglement: true
+    eval:
+      group_name: fpqc_no_cnot
+
+  - id: fpqc_sac_frozen_pqc
+    description: FPQC-SAC with frozen variational PQC rotation parameters.
+    train:
+      sac_quantum_n_layers: 2
+      sac_quantum_entanglement_topology: ring
+      sac_quantum_freeze_pqc: true
+    eval:
+      group_name: fpqc_frozen
+
+  - id: fpqc_sac_line_entanglement
+    description: FPQC-SAC with line CNOT topology instead of ring topology.
+    train:
+      sac_quantum_n_layers: 2
+      sac_quantum_entanglement_topology: line
+    eval:
+      group_name: fpqc_line_entanglement
+
+  - id: fpqc_sac_depth_l1
+    description: FPQC-SAC depth ablation with one PQC layer.
+    train:
+      sac_quantum_n_layers: 1
+      sac_quantum_entanglement_topology: ring
+    eval:
+      group_name: fpqc_depth_l1
+
+  - id: fpqc_sac_depth_l3
+    description: FPQC-SAC depth ablation with three PQC layers.
+    train:
+      sac_quantum_n_layers: 3
+      sac_quantum_entanglement_topology: ring
+    eval:
+      group_name: fpqc_depth_l3
+
+  - id: fpqc_sac_depth_l4
+    description: FPQC-SAC depth ablation with four PQC layers.
+    train:
+      sac_quantum_n_layers: 4
+      sac_quantum_entanglement_topology: ring
+    eval:
+      group_name: fpqc_depth_l4
+
+  - id: fpqc_sac_depth_l5
+    description: FPQC-SAC depth ablation with five PQC layers.
+    train:
+      sac_quantum_n_layers: 5
+      sac_quantum_entanglement_topology: ring
+    eval:
+      group_name: fpqc_depth_l5

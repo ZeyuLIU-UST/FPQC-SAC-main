@@ -1,0 +1,163 @@
+project: FPQC-SAC
+output_root: outputs
+
+defaults:
+  train:
+    data_path: ""
+    train_start: "2013-01-02"
+    train_end: "2018-12-31"
+    test_start: "2019-01-02"
+    test_end: "2021-08-31"
+    timesteps: 25000
+    fix_seed_list_file: configs/seeds_repro_20.txt
+    parallel_workers: 1
+    reward_scaling: 0.0001
+    disable_lookahead: true
+    disable_vix: false
+    vix_path: data/raw/vix_panel.csv
+    observation_history_window: 1
+    name_prefix: baseline
+  eval:
+    data_path: ""
+    train_start: "2013-01-02"
+    train_end: "2018-12-31"
+    test_start: "2019-01-02"
+    test_end: "2021-08-31"
+    reward_scaling: 0.0001
+    disable_lookahead: true
+    disable_vix: false
+    vix_path: data/raw/vix_panel.csv
+    observation_history_window: 1
+
+experiments:
+  - id: rff
+    description: Random Fourier feature SAC encoder baseline.
+    train:
+      algorithms: sac_fourier
+    eval:
+      algorithms: sac_fourier
+      group_name: rff
+    report:
+      label: RFF
+      category: Encoder
+      order: 10
+
+  - id: wavelet
+    description: Wavelet encoder SAC baseline.
+    train:
+      algorithms: sac_wavelet
+    eval:
+      algorithms: sac_wavelet
+      group_name: wavelet
+    report:
+      label: Wavelet
+      category: Encoder
+      order: 20
+
+  - id: kalman
+    description: Kalman-style denoising encoder SAC baseline.
+    train:
+      algorithms: sac_kalman
+    eval:
+      algorithms: sac_kalman
+      group_name: kalman
+    report:
+      label: Kalman
+      category: Encoder
+      order: 30
+
+  - id: clipped_latent
+    description: SAC with clipped latent bottleneck.
+    train:
+      algorithms: sac_clipped_bottleneck
+    eval:
+      algorithms: sac_clipped_bottleneck
+      group_name: clipped_latent
+    report:
+      label: Clipped Latent
+      category: Bottleneck
+      order: 40
+
+  - id: tanh_bottleneck
+    description: SAC with tanh bottleneck.
+    train:
+      algorithms: sac_tanh_bottleneck
+    eval:
+      algorithms: sac_tanh_bottleneck
+      group_name: tanh_bottleneck
+    report:
+      label: Tanh Bottleneck
+      category: Bottleneck
+      order: 50
+
+  - id: layernorm_bottleneck
+    description: SAC with LayerNorm bottleneck.
+    train:
+      algorithms: sac_layernorm_bottleneck
+    eval:
+      algorithms: sac_layernorm_bottleneck
+      group_name: layernorm_bottleneck
+    report:
+      label: LayerNorm Bot.
+      category: Bottleneck
+      order: 60
+
+  - id: weight_decay_bottleneck
+    description: SAC bottleneck with weight decay regularization.
+    train:
+      algorithms: sac_weight_decay_bottleneck
+    eval:
+      algorithms: sac_weight_decay_bottleneck
+      group_name: weight_decay_bottleneck
+    report:
+      label: Weight Decay Bot.
+      category: Bottleneck
+      order: 70
+
+  - id: mlp_bottleneck
+    description: SAC with MLP bottleneck.
+    train:
+      algorithms: sac_mlp
+    eval:
+      algorithms: sac_mlp
+      group_name: mlp_bottleneck
+    report:
+      label: MLP Bottleneck
+      category: Bottleneck
+      order: 80
+
+  - id: sac_no_bottleneck
+    description: SAC baseline without representation bottleneck.
+    train:
+      algorithms: sac
+    eval:
+      algorithms: sac
+      group_name: sac_no_bottleneck
+    report:
+      label: SAC (No Bottleneck)
+      category: Bottleneck
+      order: 90
+
+  - id: linear_bottleneck
+    description: SAC with linear bottleneck.
+    train:
+      algorithms: sac_linear_bottleneck
+    eval:
+      algorithms: sac_linear_bottleneck
+      group_name: linear_bottleneck
+    report:
+      label: Linear Bottleneck
+      category: Bottleneck
+      order: 100
+
+  - id: spectralnorm_bottleneck
+    description: SAC with SpectralNorm bottleneck.
+    train:
+      algorithms: sac_spectral_bottleneck
+    eval:
+      algorithms: sac_spectral_bottleneck
+      group_name: spectralnorm_bottleneck
+    report:
+      label: SpectralNorm Bot.
+      category: Bottleneck
+      order: 110

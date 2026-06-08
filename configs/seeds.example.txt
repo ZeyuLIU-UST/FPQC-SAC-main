@@ -1,0 +1,7 @@
+# Example seed list for exploratory runs.
+# The fixed reproduction workflow uses configs/seeds_repro_20.txt.
+42
+123
+2024
+3407
+10007

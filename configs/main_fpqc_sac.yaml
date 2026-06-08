@@ -1,0 +1,45 @@
+project: FPQC-SAC
+output_root: outputs
+
+defaults:
+  train:
+    data_path: ""
+    train_start: "2013-01-02"
+    train_end: "2018-12-31"
+    test_start: "2019-01-02"
+    test_end: "2021-08-31"
+    timesteps: 25000
+    fix_seed_list_file: configs/seeds_repro_20.txt
+    parallel_workers: 1
+    reward_scaling: 0.0001
+    disable_lookahead: true
+    disable_vix: false
+    vix_path: data/raw/vix_panel.csv
+    observation_history_window: 1
+    name_prefix: baseline
+  eval:
+    data_path: ""
+    train_start: "2013-01-02"
+    train_end: "2018-12-31"
+    test_start: "2019-01-02"
+    test_end: "2021-08-31"
+    reward_scaling: 0.0001
+    disable_lookahead: true
+    disable_vix: false
+    vix_path: data/raw/vix_panel.csv
+    observation_history_window: 1
+
+experiments:
+  - id: fpqc_sac_main
+    description: Main FPQC-SAC experiment with 7 qubits, 2 PQC layers, and ring entanglement.
+    train:
+      algorithms: sac
+      sac_use_quantum_feature: true
+      sac_n_qubits: 7
+      sac_quantum_n_layers: 2
+      sac_quantum_device: cpu
+      sac_quantum_entanglement_topology: ring
+      sac_quantum_embedding_type: angle
+    eval:
+      algorithms: sac
+      group_name: fpqc_sac
