@@ -56,16 +56,19 @@ open-source use.
 
 - [Recommended Hardware](#recommended-hardware)
 - [Quick Start](#quick-start)
+- [Fixed CUDA Scripts](#fixed-cuda-scripts)
 - [Reproduction Tutorial](#reproduction-tutorial)
   - [1. Prepare Data And Seeds](#1-prepare-data-and-seeds)
   - [2. Run The Fixed CUDA Core Suite](#2-run-the-fixed-cuda-core-suite)
   - [3. Run The Extended Ablation Suite](#3-run-the-extended-ablation-suite)
   - [4. Generate Paper Tables](#4-generate-paper-tables)
   - [5. Generate Paper Figures](#5-generate-paper-figures)
+- [Experiment Matrix](#experiment-matrix)
 - [Advanced Utilities](#advanced-utilities)
 - [Output Layout](#output-layout)
 - [Data](#data)
 - [Reproducibility Notes](#reproducibility-notes)
+- [Analysis Scripts](#analysis-scripts)
 - [Acknowledgements](#acknowledgements)
 - [Development Checks](#development-checks)
 
@@ -76,8 +79,7 @@ open-source use.
 ## Recommended Hardware
 
 The paper reports experiments on **Intel Core i9-13980HX + NVIDIA GeForce RTX
-4090 Laptop GPU**. Use this stack when reproducing the paper's experimental
-setup and baseline rankings.
+4090 Laptop GPU**.
 
 | Profile | Configuration |
 | --- | --- |
@@ -88,32 +90,33 @@ setup and baseline rankings.
 **Notes**
 
 - On the RTX 4090 Laptop, keep PyTorch and PennyLane on the same CUDA device
-  class when GPU quantum backends are enabled. This is the stack cited in the
-  manuscript for all three portfolio CSVs
-  (`repro_mainstream_tech_market_index_portfolio_2013_2023.csv`,
-  `repro_defensive_blue_chip_portfolio_2013_2023.csv`,
-  `repro_high_volatility_growth_portfolio_2013_2023.csv`). Independent reruns
-  on the same GPU can still shift trimmed-mean CR% by noticeable margins while
-  FPQC-SAC remains ahead of the SAC-family baselines.
-- On Apple Silicon, PennyLane falls back to CPU. During macOS release QA we
-  smoke-tested the defensive portfolio
-  (`repro_defensive_blue_chip_portfolio_2013_2023.csv`) on `MacBookPro17,1` +
-  M1; treat macOS as a workflow check, not the reference path for table-level
-  reproduction.
+  when GPU quantum backends are enabled. The manuscript experiments used this
+  stack for all three portfolio CSVs listed in [Data](#data).
+- On Apple Silicon, PennyLane falls back to CPU. We smoke-tested the defensive
+  portfolio (`repro_defensive_blue_chip_portfolio_2013_2023.csv`) on
+  `MacBookPro17,1` + M1 during release QA.
 - On the 4× L40 node, shard the 20-seed
   [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt) protocol on CUDA
   (one seed block per GPU) when replaying the full three-portfolio suite at
   scale.
-- The fixed CUDA scripts stop when CUDA is unavailable. For exploratory runs on
-  other NVIDIA GPUs, set `ALLOW_OTHER_GPU=1`, but those runs are outside the
-  reported hardware setting.
+- The CUDA scripts expect a visible CUDA device. Set `ALLOW_OTHER_GPU=1` to run
+  on other NVIDIA GPUs.
+
+---
 
 ## Quick Start
+
+Create the pinned conda environment from
+[`environment.yml`](environment.yml), then run the fixed download and CUDA
+scripts:
 
 ```bash
 conda env create -f environment.yml
 conda activate fpqc-sac
 
+# Download the three paper portfolios (18 distinct assets, six per panel).
+# Training uses 2013-01-02–2018-12-31; download through 2024-01-01 for test/OOS.
+# See Data for the per-panel download commands.
 bash scripts/download_reproducibility_data.sh
 
 CUDA_VISIBLE_DEVICES=0 \
@@ -128,9 +131,9 @@ PHASE=all \
 bash scripts/run_reproducibility_extended_cuda.sh
 ```
 
-If the four CSV files listed in the reproduction tutorial already exist at the
-fixed paths, skip the download command and run the CUDA shell scripts directly.
-No YAML config editing is required for the fixed reproduction workflow.
+If the four CSV files listed in the [reproduction tutorial](#reproduction-tutorial)
+are already in place, skip the download step and run the
+[fixed CUDA scripts](#fixed-cuda-scripts) directly.
 
 For a non-executing command preview:
 
@@ -138,20 +141,51 @@ For a non-executing command preview:
 DRY_RUN=1 bash scripts/run_reproducibility_suite_cuda.sh
 ```
 
-The fixed data groups are:
+The three data groups are:
 
 - `mainstream_tech_market_index`: mainstream tech and market-index portfolio: AAPL, AMZN, GOOGL, MSFT, QQQ, SPY.
 - `defensive_blue_chip`: Defensive Blue-chip portfolio with traditional economy and value stocks: BAC, JNJ, JPM, PG, WMT, XOM.
 - `high_volatility_growth`: High-Volatility Growth portfolio with aggressive thematic assets: AVGO, BRK.B, META, NFLX, NVDA, TSLA.
 
-The CSV row order is part of the reproducibility protocol: for each date, rows
-are written in exactly the ticker order listed above.
+For each date, rows are written in the ticker order listed above. See
+[Data](#data) for the three-panel download commands, VIX file, and download
+summary fields.
+
+---
+
+## Fixed CUDA Scripts
+
+The fixed reproduction path uses these shell entry points:
+
+| Script | Role |
+| --- | --- |
+| [`scripts/download_reproducibility_data.sh`](scripts/download_reproducibility_data.sh) | Download the three portfolio panels and VIXY proxy |
+| [`scripts/run_reproducibility_suite_cuda.sh`](scripts/run_reproducibility_suite_cuda.sh) | Core FPQC-SAC and DRL baseline suite |
+| [`scripts/run_reproducibility_extended_cuda.sh`](scripts/run_reproducibility_extended_cuda.sh) | Extended ablations, encoders, bottlenecks, and rule-based checks |
+| [`scripts/build_analysis_tables.sh`](scripts/build_analysis_tables.sh) | Trim-2 paper tables from evaluation manifests |
+| [`scripts/run_oos_baseline_curves.sh`](scripts/run_oos_baseline_curves.sh) | OOS baseline curve train/eval/plot workflow |
+| [`scripts/run_latent_variance_vaf1.sh`](scripts/run_latent_variance_vaf1.sh) | Latent-variance and `VAF@1` figure pipeline |
+
+Set `STAGE=eval` or `STAGE=plot` on the OOS wrapper, or `PHASE=train` /
+`PHASE=eval` on the CUDA suite scripts, to rerun only part of a workflow:
+
+```bash
+PHASE=eval bash scripts/run_reproducibility_suite_cuda.sh
+DRY_RUN=1 bash scripts/run_reproducibility_extended_cuda.sh
+STAGE=plot bash scripts/run_oos_baseline_curves.sh
+```
+
+`ONLY_GROUP` and `ONLY_ALGO` are available for resuming an interrupted run. See
+the [reproduction tutorial](#reproduction-tutorial) for the full step order.
+
+---
 
 ## Reproduction Tutorial
 
 The recommended workflow is fixed end-to-end: download the three predefined
-Yahoo panels, download the VIXY proxy, then run the CUDA scripts with
-the published 20-seed list in `configs/seeds_repro_20.txt`.
+Yahoo panels, download the VIXY proxy, then run the
+[fixed CUDA scripts](#fixed-cuda-scripts) with the published 20-seed list in
+[`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt).
 
 | Step | Action |
 | ---: | --- |
@@ -163,13 +197,17 @@ the published 20-seed list in `configs/seeds_repro_20.txt`.
 
 ### 1. Prepare Data And Seeds
 
-Run:
+The paper uses **three non-overlapping U.S. six-asset portfolios** (18 distinct
+assets). Download them in the order below, or use the per-panel commands in
+[Data](#data).
+
+**One-command download:**
 
 ```bash
 bash scripts/download_reproducibility_data.sh
 ```
 
-This creates:
+This writes the three portfolio panels and the VIXY proxy:
 
 ```text
 data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
@@ -178,14 +216,21 @@ data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv
 data/raw/vix_panel.csv
 ```
 
-The fixed seed file is `configs/seeds_repro_20.txt`. When trim-2 is used, seeds
+Training uses **2013-01-02 through 2018-12-31**; download panels through
+**2024-01-01** (`--end 2024-01-01` because Yahoo treats `end` as exclusive) so
+held-out test and OOS windows through 2023 are covered.
+
+The seed file is [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt). When
+trim-2 is used, seeds
 are sorted by test `total_return` within each model group, the two lowest and
 two highest seeds are removed, and summary metrics are computed on the
 remaining seeds.
 
 ### 2. Run The Fixed CUDA Core Suite
 
-Use an NVIDIA RTX 4090 or L40 with CUDA visible to PyTorch:
+Use an NVIDIA GeForce RTX 4090 Laptop GPU or NVIDIA L40 (48 GB) with CUDA
+visible to PyTorch. See [Recommended Hardware](#recommended-hardware) for the
+full device notes:
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -195,8 +240,7 @@ bash scripts/run_reproducibility_suite_cuda.sh
 ```
 
 The suite runs each group sequentially. Within a group, the algorithm order is
-fixed as FPQC-SAC, PPO, DDPG, SAC, TD3, A2C, and TQC. Use `ONLY_GROUP` or
-`ONLY_ALGO` only for restarting an interrupted run:
+FPQC-SAC, PPO, DDPG, SAC, TD3, A2C, and TQC. To resume one group or algorithm:
 
 ```bash
 ONLY_GROUP=defensive_blue_chip ONLY_ALGO=sac PHASE=train bash scripts/run_reproducibility_suite_cuda.sh
@@ -210,9 +254,9 @@ DRY_RUN=1 bash scripts/run_reproducibility_suite_cuda.sh
 
 ### 3. Run The Extended Ablation Suite
 
-The extended suite reproduces the ablation, bottleneck, encoder, DRL baseline,
-and rule-based checks. It also runs each fixed data group in order and does not
-require editing YAML configs:
+The extended suite covers the ablation, bottleneck, encoder, DRL baseline, and
+rule-based checks listed in the [experiment matrix](#experiment-matrix). It runs
+each data group in order:
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -221,7 +265,7 @@ PHASE=all \
 bash scripts/run_reproducibility_extended_cuda.sh
 ```
 
-Use `ONLY_GROUP` only for restarting one data group:
+To resume one data group:
 
 ```bash
 ONLY_GROUP=high_volatility_growth PHASE=train bash scripts/run_reproducibility_extended_cuda.sh
@@ -235,39 +279,18 @@ DRY_RUN=1 bash scripts/run_reproducibility_extended_cuda.sh
 
 ### 4. Generate Paper Tables
 
-After train/eval finishes, generate trim-2 tables. If the extended suite has
-been run, this command automatically finds the extended-suite `manifest.csv`
-files and writes one performance table per fixed group:
-
-```bash
-bash scripts/build_analysis_tables.sh
-```
-
-For example, extended-suite tables are written under:
-
-```text
-outputs/analysis_tables/<run_prefix>/performance/
-```
-
-Each table directory contains `trim2_performance_table.tex`,
-`trim2_summary_by_model.csv`, and `trim2_retained_runs.csv`. If no
-extended-suite manifests are found, the script falls back to the config-based
-`run.py` output layout. To select specific runs explicitly:
-
-```bash
-MANIFESTS="outputs/repro_mainstream_tech_market_index_extended_25k_rewardcache_cuda_extended/manifest.csv" \
-  bash scripts/build_analysis_tables.sh
-```
-
-The performance tables report `CR%`, `AR%`, `SR`, `Sortino`, and `Calmar`.
-Trim-2 means that, within each model group, seeds are sorted by test
-`total_return`, the two lowest and two highest seeds are removed, and the
-remaining seeds are summarized.
+After train/eval finishes, generate trim-2 tables with
+[`scripts/build_analysis_tables.sh`](scripts/build_analysis_tables.sh). See
+[Analysis Scripts](#analysis-scripts) for manifest overrides, output layout, and
+metric definitions.
 
 ### 5. Generate Paper Figures
 
-The release keeps only the figure scripts used by the paper. To evaluate the
-OOS baseline curves through the end of 2023 and then plot the 2019-2023 median
+The release keeps only the figure scripts used by the paper. Use
+[`scripts/run_oos_baseline_curves.sh`](scripts/run_oos_baseline_curves.sh) and
+[`scripts/run_latent_variance_vaf1.sh`](scripts/run_latent_variance_vaf1.sh)
+from the [fixed CUDA scripts](#fixed-cuda-scripts) table. To evaluate the OOS
+baseline curves through the end of 2023 and then plot the 2019-2023 median
 account-value figure, use the OOS workflow below. If the OOS models already
 exist under the config output paths, skip the `STAGE=train` command and run only
 `STAGE=eval` and `STAGE=plot`.
@@ -325,18 +348,40 @@ outputs/figures/input/overall_feature_shape_vaf_by_group_<group_set>.csv
 outputs/figures/latent_variance_vaf1_<group_set>.png
 ```
 
+---
+
+## Experiment Matrix
+
+Paper reproduction goes through the CUDA scripts above. The YAML configs below
+are for development checks, ablation debugging, and exploratory runs:
+
+| Config | Role |
+| --- | --- |
+| [`configs/main_fpqc_sac.yaml`](configs/main_fpqc_sac.yaml) | FPQC-SAC with SAC, 7 qubits, 2 PQC layers, ring entanglement |
+| [`configs/baseline_sac.yaml`](configs/baseline_sac.yaml) | Classic SAC with matched seeds and data split |
+| [`configs/ablations.yaml`](configs/ablations.yaml) | No-CNOT, Frozen-PQC, line entanglement, and PQC depth variants |
+| [`configs/encoders_bottlenecks.yaml`](configs/encoders_bottlenecks.yaml) | RFF, Wavelet, Kalman, clipped latent, tanh / LayerNorm / weight-decay / MLP bottlenecks, SAC (no bottleneck), linear and SpectralNorm bottlenecks |
+| [`configs/oos_baseline_curves.yaml`](configs/oos_baseline_curves.yaml) | OOS baseline curve train/eval/plot entry point |
+
+Optional YAML wrappers such as
+[`scripts/run_main.sh`](scripts/run_main.sh),
+[`scripts/run_baselines.sh`](scripts/run_baselines.sh),
+[`scripts/run_ablations.sh`](scripts/run_ablations.sh), and
+[`scripts/run_encoders_bottlenecks.sh`](scripts/run_encoders_bottlenecks.sh)
+call `run.py` against these configs. Paper reproduction goes through the
+[fixed CUDA scripts](#fixed-cuda-scripts).
+
+---
+
 ## Advanced Utilities
 
-The fixed reproduction workflow does not require editing YAML configs. The
-`configs/` files and the `run.py` wrapper are kept for development checks,
-ablation debugging, and exploratory runs outside the fixed path. For the
-reported workflow, use `scripts/download_reproducibility_data.sh` and the fixed
-CUDA shell scripts:
+The [`configs/`](configs/) files and [`run.py`](run.py) wrapper support
+development checks and exploratory runs. The paper workflow uses
+[`scripts/download_reproducibility_data.sh`](scripts/download_reproducibility_data.sh)
+and the [fixed CUDA scripts](#fixed-cuda-scripts). See the
+[experiment matrix](#experiment-matrix) for the YAML catalog.
 
-```text
-scripts/run_reproducibility_suite_cuda.sh
-scripts/run_reproducibility_extended_cuda.sh
-```
+---
 
 ## Output Layout
 
@@ -353,58 +398,193 @@ Evaluation always produces `baseline_all_model_metrics.csv` and per-model
 `test_account_values_*.csv` files. The metrics CSV includes `group_name`,
 `algorithm`, `model_name`, `seed`, `m_index`, `total_return`, `annual_return`,
 `annual_volatility`, `sharpe_ratio`, `sortino_ratio`, `max_drawdown`, and
-`calmar_ratio`.
+`calmar_ratio`. Trim-2 table outputs are written under
+[`outputs/analysis_tables/`](outputs/analysis_tables/); see
+[Analysis Scripts](#analysis-scripts).
+
+---
 
 ## Data
 
-Full market datasets are not committed. Rebuild the fixed data panels with:
+Full market datasets are not committed. Place local data under:
+
+```text
+data/raw/
+data/processed/
+data/examples/
+```
+
+Paper experiments use **three non-overlapping U.S. six-asset portfolios**
+(18 distinct assets across mainstream tech, defensive blue-chip, and
+high-volatility growth regimes). Download the panels in the order below. All DRL
+agents train on **2013-01-02 through 2018-12-31**; download through
+**2024-01-01** so held-out test windows through 2023 are covered.
+
+### Portfolio Panels
+
+| Group ID | Role | Tickers (in order) | Output CSV |
+| --- | --- | --- | --- |
+| `mainstream_tech_market_index` | Mainstream tech and market-index benchmark | AAPL, AMZN, GOOGL, MSFT, QQQ, SPY | `data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv` |
+| `defensive_blue_chip` | Defensive blue-chip, lower volatility | BAC, JNJ, JPM, PG, WMT, XOM | `data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv` |
+| `high_volatility_growth` | High-volatility growth, elevated regime sensitivity | AVGO, BRK.B, META, NFLX, NVDA, TSLA | `data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv` |
+
+For each date, rows are written in the ticker order shown above. The commands
+below use `--auto-adjust` and `--drop-incomplete-dates`.
+
+### One-Command Download
 
 ```bash
 bash scripts/download_reproducibility_data.sh
 ```
 
-This writes the three paper reproduction panels under `data/processed/` and the
-VIXY proxy under `data/raw/vix_panel.csv`:
+This downloads all three panels plus the VIXY proxy with the same flags and
+filenames used by the CUDA scripts.
 
-```text
-data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
-data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv
-data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv
-data/raw/vix_panel.csv
+### Manual Per-Panel Download
+
+Download each panel with
+[`scripts/download_yahoo_stock_panel.py`](scripts/download_yahoo_stock_panel.py)
+in this order:
+
+```bash
+python scripts/download_yahoo_stock_panel.py \
+  --tickers AAPL,AMZN,GOOGL,MSFT,QQQ,SPY \
+  --start 2013-01-01 \
+  --end 2024-01-01 \
+  --auto-adjust \
+  --drop-incomplete-dates \
+  --out data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
+
+python scripts/download_yahoo_stock_panel.py \
+  --tickers BAC,JNJ,JPM,PG,WMT,XOM \
+  --start 2013-01-01 \
+  --end 2024-01-01 \
+  --auto-adjust \
+  --drop-incomplete-dates \
+  --out data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv
+
+python scripts/download_yahoo_stock_panel.py \
+  --tickers AVGO,BRK.B,META,NFLX,NVDA,TSLA \
+  --start 2013-01-01 \
+  --end 2024-01-01 \
+  --auto-adjust \
+  --drop-incomplete-dates \
+  --out data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv
 ```
 
-See `data/README.md` for the schema, Yahoo download command, price adjustment
-mode, and post-download validation checks.
+If Yahoo returns no rows for `BRK.B`, retry with `BRK-B`. The downloader maps
+`BRK.B` to Yahoo's `BRK-B` symbol and writes `BRK.B` back to the output CSV.
+
+### VIX Proxy Download
+
+Also download the VIX proxy to `data/raw/vix_panel.csv`:
+
+```bash
+python scripts/download_yahoo_stock_panel.py \
+  --tickers VIXY \
+  --start 2013-01-01 \
+  --end 2024-01-01 \
+  --auto-adjust \
+  --drop-incomplete-dates \
+  --out data/raw/vix_panel.csv
+```
+
+### Expected CSV Schema
+
+Each processed portfolio panel uses this long-table schema:
+
+```text
+date,Open,High,Low,Close,Volume,tic
+```
+
+### Download Summary
+
+After each download, the script prints:
+
+```text
+rows, tickers, first_date, last_date, min_rows_per_ticker,
+max_rows_per_ticker, duplicate_date_tic, missing_values, rectangular
+```
+
+A complete panel typically has columns `date,Open,High,Low,Close,Volume,tic`,
+with `duplicate_date_tic = 0`, `missing_values = 0`, and `rectangular = True`.
+
+Yahoo's `end` date is exclusive, so `--end 2024-01-01` requests sessions
+through the end of 2023. The last row depends on the market calendar and may be
+`2023-12-29` for U.S. equities.
+
+See [`data/README.md`](data/README.md) for additional schema notes.
+
+---
 
 ## Reproducibility Notes
 
-- `configs/seeds_repro_20.txt` is the fixed 20-seed list.
+- [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt) is the 20-seed list
+  used by the CUDA scripts. [`configs/seeds.example.txt`](configs/seeds.example.txt)
+  shows the one-line seed-file format.
 - The data pipeline uses Yahoo Finance from `2013-01-01` through
   `2023-12-31` (`--end 2024-01-01` because Yahoo treats `end` as exclusive),
   adjusted OHLC, and rectangular panels via `--drop-incomplete-dates`.
-- The fixed CSV order is deterministic: dates ascending, and within each date
-  rows follow the ticker order listed in the Quick Start.
-- The reported training runs require CUDA on an NVIDIA RTX 4090 or L40.
-- The main training entry point is `main_baselines_randomseed.py`.
-- The unified evaluator is `scripts/eval_baseline_models.py`.
-- The FPQC bottleneck implementation is in `models.py`.
-- The `simple_mcts` script option is an internal delayed reward adjustment used
-  by the fixed workflow; it does not require a separate planner file.
+- CSV rows are sorted by ascending date; within each date they follow the ticker
+  order listed in [Quick Start](#quick-start).
+- Paper training runs used an NVIDIA GeForce RTX 4090 Laptop GPU or NVIDIA L40
+  (48 GB). See [Recommended Hardware](#recommended-hardware).
+- The main training entry point is
+  [`main_baselines_randomseed.py`](main_baselines_randomseed.py).
+- The unified evaluator is
+  [`scripts/eval_baseline_models.py`](scripts/eval_baseline_models.py).
+- The FPQC bottleneck implementation is in [`models.py`](models.py).
+- The `simple_mcts` script option is an internal delayed reward adjustment; no
+  separate planner file is involved.
 
-**Hardware and floating-point variance.** Numerical results may differ across
-computing devices. Even with the same seeds, data split, and hyperparameters,
-results can vary across machines. When checking whether FPQC-SAC retains the
-top ranking reported in the trading tables, use an **NVIDIA GeForce RTX 4090
-Laptop GPU** or **NVIDIA L40 (48 GB)**. Treat
-[`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt) as the intended
-experimental protocol and the trim-2 aggregator as part of the evaluation
-definition.
+**Hardware and floating-point variance.** Results can vary slightly across
+machines because of device-specific numerics. Paper experiments used an
+**NVIDIA GeForce RTX 4090 Laptop GPU** or **NVIDIA L40 (48 GB)**. The seed
+list is [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt); tables use
+trim-2 aggregation.
+
+---
+
+## Analysis Scripts
+
+After training and evaluation, run the bundled analysis pipeline:
+
+```bash
+bash scripts/build_analysis_tables.sh
+```
+
+If the extended suite has been run, this command automatically finds the
+extended-suite `manifest.csv` files and writes one performance table per fixed
+group. For example, extended-suite tables are written under:
+
+```text
+outputs/analysis_tables/<run_prefix>/performance/
+```
+
+Each table directory contains `trim2_performance_table.tex`,
+`trim2_summary_by_model.csv`, and `trim2_retained_runs.csv`. If no
+extended-suite manifests are found, the script falls back to the config-based
+[`run.py`](run.py) output layout. To select specific runs explicitly:
+
+```bash
+MANIFESTS="outputs/repro_mainstream_tech_market_index_extended_25k_rewardcache_cuda_extended/manifest.csv" \
+  bash scripts/build_analysis_tables.sh
+```
+
+The performance tables report `CR%`, `AR%`, `SR`, `Sortino`, and `Calmar`.
+Trim-2 means that, within each model group, seeds are sorted by test
+`total_return`, the two lowest and two highest seeds are removed, and the
+remaining seeds are summarized.
+
+---
 
 ## Acknowledgements
 
 This project is built on a FinRL-compatible training stack. We thank the FinRL
 authors and contributors for releasing their financial reinforcement learning
 framework as open-source software, which made this research codebase possible.
+
+---
 
 ## Development Checks
 
