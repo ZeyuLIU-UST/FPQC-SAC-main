@@ -378,18 +378,14 @@ mode, and post-download validation checks.
 - The `simple_mcts` script option is an internal delayed reward adjustment used
   by the fixed workflow; it does not require a separate planner file.
 
-**Hardware and floating-point variance.** Even with the same seeds, data split, and
-hyperparameters, numerical results can differ across machines—and sometimes
-across reruns on the same machine—because training depends on device-specific
-math libraries, PennyLane backend choice, and non-associative floating-point
-reductions. **Use the RTX 4090 Laptop CUDA stack when checking whether FPQC-SAC
-retains the top ranking** reported in the trading tables; absolute CR/AR/SR
-digits are indicative, not a byte-for-byte reproduction target. High-volatility
-portfolios and non-CUDA quantum simulation are the most drift-prone settings.
-Treat [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt) as the intended
+**Hardware and floating-point variance.** Numerical results may differ across
+computing devices. Even with the same seeds, data split, and hyperparameters,
+results can vary across machines. When checking whether FPQC-SAC retains the
+top ranking reported in the trading tables, use an **NVIDIA GeForce RTX 4090
+Laptop GPU** or **NVIDIA L40 (48 GB)**. Treat
+[`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt) as the intended
 experimental protocol and the trim-2 aggregator as part of the evaluation
-definition; expect qualitative conclusions (SOTA ranking, risk-adjusted margins
-vs. SAC-family baselines) to transfer more reliably than exact table cells.
+definition.
 
 ## Acknowledgements
 
