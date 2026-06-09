@@ -515,6 +515,9 @@ This project is built on a FinRL-compatible training stack. We thank the FinRL
 authors and contributors for releasing their financial reinforcement learning
 framework as open-source software, which made this research codebase possible.
 
+We also thank Yang LI and Xiyue LIU, research assistants at HKUST, for their
+help with the experiments.
+
 ---
 
 ## Development Checks
