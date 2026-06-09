@@ -15,41 +15,13 @@
   <img src="https://img.shields.io/badge/License-MIT-blue" alt="License MIT"/>
 </p>
 
-<table align="center">
-  <tr>
-    <td align="center" width="220">
-      <b>Quantum Representation</b><br/>
-      <sub>Parametrized quantum circuit feature bottleneck</sub>
-    </td>
-    <td align="center" width="220">
-      <b>Noise Suppression</b><br/>
-      <sub>Stabilizes learning under low-SNR finance signals</sub>
-    </td>
-    <td align="center" width="220">
-      <b>Stable Value Estimation</b><br/>
-      <sub>Reduced critic variance vs. classical SAC</sub>
-    </td>
-    <td align="center" width="220">
-      <b>Better Returns</b><br/>
-      <sub>Smoother equity curves on held-out tests</sub>
-    </td>
-  </tr>
-</table>
-
-<br/>
-
-> **SAC** — volatile critic targets and jagged test curves.  
-> **FPQC-SAC** — quantum bottleneck smooths representations for steadier policy improvement.
-
 <p align="center">
   <img src="figure/zhuyetu.png" alt="FPQC-SAC — Mitigating Bias in Low-SNR Financial RL via Quantum Representations" width="92%"/>
 </p>
 
-An anonymized research codebase for reproducing FPQC-SAC experiments: a hybrid
-quantum-classical Soft Actor-Critic agent with a parametrized quantum circuit
-feature bottleneck. The repository keeps the original FinRL-compatible training
-stack while adding a small configuration layer for reproducible, double-blind
-open-source use.
+A codebase for reproducing FPQC-SAC experiments: a hybrid quantum-classical Soft
+Actor-Critic agent with a parametrized quantum circuit feature bottleneck,
+built on a FinRL-compatible training stack.
 
 <details>
 <summary><b>Table of contents</b></summary>
