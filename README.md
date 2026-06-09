@@ -50,7 +50,7 @@ built on a FinRL-compatible training stack.
 ## Recommended Hardware
 
 The paper reports experiments on **Intel Core i9-13980HX + NVIDIA GeForce RTX
-4090 Laptop GPU**.
+4090 Laptop GPU**. The other devices below work as well, if you prefer.
 
 | Profile | Configuration |
 | --- | --- |
