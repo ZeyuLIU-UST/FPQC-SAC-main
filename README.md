@@ -73,6 +73,8 @@ The paper reports experiments on **Intel Core i9-13980HX + NVIDIA GeForce RTX
   scale.
 - The CUDA scripts expect a visible CUDA device. Set `ALLOW_OTHER_GPU=1` to run
   on other NVIDIA GPUs.
+- Numerical results can differ slightly across devices because of hardware- and
+  backend-specific floating-point behavior during training.
 
 ---
 
@@ -468,8 +470,9 @@ Evaluation always produces `baseline_all_model_metrics.csv` and per-model
 - The `simple_mcts` script option is an internal delayed reward adjustment; no
   separate planner file is involved.
 
-**Hardware and floating-point variance.** Results can vary slightly across
-machines because of device-specific numerics. Paper experiments used an
+**Hardware and floating-point variance.** Numerical results can differ slightly
+across devices because of hardware- and backend-specific floating-point behavior
+during training. Paper experiments used an
 **NVIDIA GeForce RTX 4090 Laptop GPU** or **NVIDIA L40 (48 GB)**. The seed
 list is [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt); tables use
 trim-2 aggregation.
