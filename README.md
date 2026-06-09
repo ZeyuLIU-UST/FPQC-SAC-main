@@ -27,7 +27,7 @@ built on a FinRL-compatible training stack.
 <summary><b>Table of contents</b></summary>
 
 - [Recommended Hardware](#recommended-hardware)
-- [Quick Start](#quick-start)
+- [Data Download & Quick Start](#data-download--quick-start)
 - [Fixed CUDA Scripts](#fixed-cuda-scripts)
 - [Reproduction Tutorial](#reproduction-tutorial)
   - [1. Prepare Data And Seeds](#1-prepare-data-and-seeds)
@@ -38,7 +38,6 @@ built on a FinRL-compatible training stack.
 - [Experiment Matrix](#experiment-matrix)
 - [Advanced Utilities](#advanced-utilities)
 - [Output Layout](#output-layout)
-- [Data](#data)
 - [Reproducibility Notes](#reproducibility-notes)
 - [Analysis Scripts](#analysis-scripts)
 - [Acknowledgements](#acknowledgements)
@@ -63,7 +62,8 @@ The paper reports experiments on **Intel Core i9-13980HX + NVIDIA GeForce RTX
 
 - On the RTX 4090 Laptop, keep PyTorch and PennyLane on the same CUDA device
   when GPU quantum backends are enabled. The manuscript experiments used this
-  stack for all three portfolio CSVs listed in [Data](#data).
+  stack for all three portfolio CSVs listed in
+  [Data Download & Quick Start](#data-download--quick-start).
 - On Apple Silicon, PennyLane falls back to CPU. We smoke-tested the defensive
   portfolio (`repro_defensive_blue_chip_portfolio_2013_2023.csv`) on
   `MacBookPro17,1` + M1 during release QA.
@@ -76,19 +76,120 @@ The paper reports experiments on **Intel Core i9-13980HX + NVIDIA GeForce RTX
 
 ---
 
-## Quick Start
+## Data Download & Quick Start
 
-Create the pinned conda environment from
-[`environment.yml`](environment.yml), then run the fixed download and CUDA
-scripts:
+Full market datasets are not committed. Place local data under:
+
+```text
+data/raw/
+data/processed/
+data/examples/
+```
+
+Paper experiments use **three non-overlapping U.S. six-asset portfolios**
+(18 distinct assets across mainstream tech, defensive blue-chip, and
+high-volatility growth regimes). Training uses **2013-01-02 through
+2018-12-31**; download panels through **2024-01-01** so held-out test windows
+through 2023 are covered.
+
+### Portfolio Panels
+
+| Group ID | Role | Tickers (in order) | Output CSV |
+| --- | --- | --- | --- |
+| `mainstream_tech_market_index` | Mainstream tech and market-index benchmark | AAPL, AMZN, GOOGL, MSFT, QQQ, SPY | `data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv` |
+| `defensive_blue_chip` | Defensive blue-chip, lower volatility | BAC, JNJ, JPM, PG, WMT, XOM | `data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv` |
+| `high_volatility_growth` | High-volatility growth, elevated regime sensitivity | AVGO, BRK.B, META, NFLX, NVDA, TSLA | `data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv` |
+
+For each date, rows are written in the ticker order shown above. The download
+commands use `--auto-adjust` and `--drop-incomplete-dates`.
+
+### One-Command Download
+
+```bash
+bash scripts/download_reproducibility_data.sh
+```
+
+This downloads all three panels plus the VIXY proxy to:
+
+```text
+data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
+data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv
+data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv
+data/raw/vix_panel.csv
+```
+
+### Manual Per-Panel Download
+
+Download each panel with
+[`scripts/download_yahoo_stock_panel.py`](scripts/download_yahoo_stock_panel.py)
+in this order:
+
+```bash
+python scripts/download_yahoo_stock_panel.py \
+  --tickers AAPL,AMZN,GOOGL,MSFT,QQQ,SPY \
+  --start 2013-01-01 \
+  --end 2024-01-01 \
+  --auto-adjust \
+  --drop-incomplete-dates \
+  --out data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
+
+python scripts/download_yahoo_stock_panel.py \
+  --tickers BAC,JNJ,JPM,PG,WMT,XOM \
+  --start 2013-01-01 \
+  --end 2024-01-01 \
+  --auto-adjust \
+  --drop-incomplete-dates \
+  --out data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv
+
+python scripts/download_yahoo_stock_panel.py \
+  --tickers AVGO,BRK.B,META,NFLX,NVDA,TSLA \
+  --start 2013-01-01 \
+  --end 2024-01-01 \
+  --auto-adjust \
+  --drop-incomplete-dates \
+  --out data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv
+```
+
+If Yahoo returns no rows for `BRK.B`, retry with `BRK-B`. The downloader maps
+`BRK.B` to Yahoo's `BRK-B` symbol and writes `BRK.B` back to the output CSV.
+
+### VIX Proxy Download
+
+```bash
+python scripts/download_yahoo_stock_panel.py \
+  --tickers VIXY \
+  --start 2013-01-01 \
+  --end 2024-01-01 \
+  --auto-adjust \
+  --drop-incomplete-dates \
+  --out data/raw/vix_panel.csv
+```
+
+### Download Summary
+
+After each download, the script prints:
+
+```text
+rows, tickers, first_date, last_date, min_rows_per_ticker,
+max_rows_per_ticker, duplicate_date_tic, missing_values, rectangular
+```
+
+A complete panel typically has columns `date,Open,High,Low,Close,Volume,tic`,
+with `duplicate_date_tic = 0`, `missing_values = 0`, and `rectangular = True`.
+Yahoo's `end` date is exclusive, so `--end 2024-01-01` requests sessions through
+the end of 2023.
+
+See [`data/README.md`](data/README.md) for additional schema notes.
+
+### Run Experiments
+
+Create the conda environment from [`environment.yml`](environment.yml), download
+the panels above, then launch the CUDA suites:
 
 ```bash
 conda env create -f environment.yml
 conda activate fpqc-sac
 
-# Download the three paper portfolios (18 distinct assets, six per panel).
-# Training uses 2013-01-02–2018-12-31; download through 2024-01-01 for test/OOS.
-# See Data for the per-panel download commands.
 bash scripts/download_reproducibility_data.sh
 
 CUDA_VISIBLE_DEVICES=0 \
@@ -103,25 +204,14 @@ PHASE=all \
 bash scripts/run_reproducibility_extended_cuda.sh
 ```
 
-If the four CSV files listed in the [reproduction tutorial](#reproduction-tutorial)
-are already in place, skip the download step and run the
-[fixed CUDA scripts](#fixed-cuda-scripts) directly.
+If the four CSV files above are already in place, skip the download step and run
+the [fixed CUDA scripts](#fixed-cuda-scripts) directly.
 
 For a non-executing command preview:
 
 ```bash
 DRY_RUN=1 bash scripts/run_reproducibility_suite_cuda.sh
 ```
-
-The three data groups are:
-
-- `mainstream_tech_market_index`: mainstream tech and market-index portfolio: AAPL, AMZN, GOOGL, MSFT, QQQ, SPY.
-- `defensive_blue_chip`: Defensive Blue-chip portfolio with traditional economy and value stocks: BAC, JNJ, JPM, PG, WMT, XOM.
-- `high_volatility_growth`: High-Volatility Growth portfolio with aggressive thematic assets: AVGO, BRK.B, META, NFLX, NVDA, TSLA.
-
-For each date, rows are written in the ticker order listed above. See
-[Data](#data) for the three-panel download commands, VIX file, and download
-summary fields.
 
 ---
 
@@ -169,30 +259,9 @@ Yahoo panels, download the VIXY proxy, then run the
 
 ### 1. Prepare Data And Seeds
 
-The paper uses **three non-overlapping U.S. six-asset portfolios** (18 distinct
-assets). Download them in the order below, or use the per-panel commands in
-[Data](#data).
-
-**One-command download:**
-
-```bash
-bash scripts/download_reproducibility_data.sh
-```
-
-This writes the three portfolio panels and the VIXY proxy:
-
-```text
-data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
-data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv
-data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv
-data/raw/vix_panel.csv
-```
-
-Training uses **2013-01-02 through 2018-12-31**; download panels through
-**2024-01-01** (`--end 2024-01-01` because Yahoo treats `end` as exclusive) so
-held-out test and OOS windows through 2023 are covered.
-
-The seed file is [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt). When
+Download the three portfolio panels and VIXY proxy as described in
+[Data Download & Quick Start](#data-download--quick-start). The seed file is
+[`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt). When
 trim-2 is used, seeds
 are sorted by test `total_return` within each model group, the two lowest and
 two highest seeds are removed, and summary metrics are computed on the
@@ -376,119 +445,6 @@ Evaluation always produces `baseline_all_model_metrics.csv` and per-model
 
 ---
 
-## Data
-
-Full market datasets are not committed. Place local data under:
-
-```text
-data/raw/
-data/processed/
-data/examples/
-```
-
-Paper experiments use **three non-overlapping U.S. six-asset portfolios**
-(18 distinct assets across mainstream tech, defensive blue-chip, and
-high-volatility growth regimes). Download the panels in the order below. All DRL
-agents train on **2013-01-02 through 2018-12-31**; download through
-**2024-01-01** so held-out test windows through 2023 are covered.
-
-### Portfolio Panels
-
-| Group ID | Role | Tickers (in order) | Output CSV |
-| --- | --- | --- | --- |
-| `mainstream_tech_market_index` | Mainstream tech and market-index benchmark | AAPL, AMZN, GOOGL, MSFT, QQQ, SPY | `data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv` |
-| `defensive_blue_chip` | Defensive blue-chip, lower volatility | BAC, JNJ, JPM, PG, WMT, XOM | `data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv` |
-| `high_volatility_growth` | High-volatility growth, elevated regime sensitivity | AVGO, BRK.B, META, NFLX, NVDA, TSLA | `data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv` |
-
-For each date, rows are written in the ticker order shown above. The commands
-below use `--auto-adjust` and `--drop-incomplete-dates`.
-
-### One-Command Download
-
-```bash
-bash scripts/download_reproducibility_data.sh
-```
-
-This downloads all three panels plus the VIXY proxy with the same flags and
-filenames used by the CUDA scripts.
-
-### Manual Per-Panel Download
-
-Download each panel with
-[`scripts/download_yahoo_stock_panel.py`](scripts/download_yahoo_stock_panel.py)
-in this order:
-
-```bash
-python scripts/download_yahoo_stock_panel.py \
-  --tickers AAPL,AMZN,GOOGL,MSFT,QQQ,SPY \
-  --start 2013-01-01 \
-  --end 2024-01-01 \
-  --auto-adjust \
-  --drop-incomplete-dates \
-  --out data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
-
-python scripts/download_yahoo_stock_panel.py \
-  --tickers BAC,JNJ,JPM,PG,WMT,XOM \
-  --start 2013-01-01 \
-  --end 2024-01-01 \
-  --auto-adjust \
-  --drop-incomplete-dates \
-  --out data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv
-
-python scripts/download_yahoo_stock_panel.py \
-  --tickers AVGO,BRK.B,META,NFLX,NVDA,TSLA \
-  --start 2013-01-01 \
-  --end 2024-01-01 \
-  --auto-adjust \
-  --drop-incomplete-dates \
-  --out data/processed/repro_high_volatility_growth_portfolio_2013_2023.csv
-```
-
-If Yahoo returns no rows for `BRK.B`, retry with `BRK-B`. The downloader maps
-`BRK.B` to Yahoo's `BRK-B` symbol and writes `BRK.B` back to the output CSV.
-
-### VIX Proxy Download
-
-Also download the VIX proxy to `data/raw/vix_panel.csv`:
-
-```bash
-python scripts/download_yahoo_stock_panel.py \
-  --tickers VIXY \
-  --start 2013-01-01 \
-  --end 2024-01-01 \
-  --auto-adjust \
-  --drop-incomplete-dates \
-  --out data/raw/vix_panel.csv
-```
-
-### Expected CSV Schema
-
-Each processed portfolio panel uses this long-table schema:
-
-```text
-date,Open,High,Low,Close,Volume,tic
-```
-
-### Download Summary
-
-After each download, the script prints:
-
-```text
-rows, tickers, first_date, last_date, min_rows_per_ticker,
-max_rows_per_ticker, duplicate_date_tic, missing_values, rectangular
-```
-
-A complete panel typically has columns `date,Open,High,Low,Close,Volume,tic`,
-with `duplicate_date_tic = 0`, `missing_values = 0`, and `rectangular = True`.
-
-Yahoo's `end` date is exclusive, so `--end 2024-01-01` requests sessions
-through the end of 2023. The last row depends on the market calendar and may be
-`2023-12-29` for U.S. equities.
-
-See [`data/README.md`](data/README.md) for additional schema notes.
-
----
-
 ## Reproducibility Notes
 
 - [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt) is the 20-seed list
@@ -498,7 +454,7 @@ See [`data/README.md`](data/README.md) for additional schema notes.
   `2023-12-31` (`--end 2024-01-01` because Yahoo treats `end` as exclusive),
   adjusted OHLC, and rectangular panels via `--drop-incomplete-dates`.
 - CSV rows are sorted by ascending date; within each date they follow the ticker
-  order listed in [Quick Start](#quick-start).
+  order listed in [Data Download & Quick Start](#data-download--quick-start).
 - Paper training runs used an NVIDIA GeForce RTX 4090 Laptop GPU or NVIDIA L40
   (48 GB). See [Recommended Hardware](#recommended-hardware).
 - The main training entry point is
