@@ -17,8 +17,7 @@ Training configs expect a CSV with one row per `(date, tic)` pair:
 date,Open,High,Low,Close,Volume,tic
 ```
 
-The release configs intentionally leave `data_path` blank. The fixed data
-panels are:
+The fixed data panels are:
 
 ```text
 data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
@@ -85,8 +84,8 @@ Keep the price mode consistent across all algorithms in the same comparison.
 
 ## Rebuilding the Local VIX File
 
-The public configs enable the local VIX risk feature by default and expect a
-CSV at `data/raw/vix_panel.csv`. You can build it with the same Yahoo downloader:
+The training stack expects a CSV at `data/raw/vix_panel.csv`. Build it with the
+same Yahoo downloader:
 
 ```bash
 python scripts/download_yahoo_stock_panel.py \
