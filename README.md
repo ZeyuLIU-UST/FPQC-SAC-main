@@ -61,7 +61,7 @@ The paper reports experiments on **Intel Core i9-13980HX + NVIDIA GeForce RTX
 **Notes**
 
 - On the RTX 4090 Laptop, keep PyTorch and PennyLane on the same CUDA device
-  when GPU quantum backends are enabled. The manuscript experiments used this
+  when GPU quantum backends are enabled. The paper experiments used this
   stack for all three portfolio CSVs listed in
   [Data Download & Quick Start](#data-download--quick-start).
 - On Apple Silicon, PennyLane falls back to CPU. We smoke-tested the defensive
@@ -332,7 +332,7 @@ metric definitions.
 
 ### 5. Generate Paper Figures
 
-The release keeps only the figure scripts used by the paper. Use
+This repository includes the figure scripts used by the paper. Use
 [`scripts/run_oos_baseline_curves.sh`](scripts/run_oos_baseline_curves.sh) and
 [`scripts/run_latent_variance_vaf1.sh`](scripts/run_latent_variance_vaf1.sh)
 from the [fixed CUDA scripts](#fixed-cuda-scripts) table. To evaluate the OOS
