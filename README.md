@@ -125,6 +125,7 @@ Download each panel with
 in this order:
 
 ```bash
+# Main experiment
 python scripts/download_yahoo_stock_panel.py \
   --tickers AAPL,AMZN,GOOGL,MSFT,QQQ,SPY \
   --start 2013-01-01 \
@@ -133,6 +134,7 @@ python scripts/download_yahoo_stock_panel.py \
   --drop-incomplete-dates \
   --out data/processed/repro_mainstream_tech_market_index_portfolio_2013_2023.csv
 
+# Sub-experiment 1
 python scripts/download_yahoo_stock_panel.py \
   --tickers BAC,JNJ,JPM,PG,WMT,XOM \
   --start 2013-01-01 \
@@ -141,6 +143,7 @@ python scripts/download_yahoo_stock_panel.py \
   --drop-incomplete-dates \
   --out data/processed/repro_defensive_blue_chip_portfolio_2013_2023.csv
 
+# Sub-experiment 2
 python scripts/download_yahoo_stock_panel.py \
   --tickers AVGO,BRK.B,META,NFLX,NVDA,TSLA \
   --start 2013-01-01 \
