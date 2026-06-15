@@ -88,8 +88,7 @@ data/examples/
 Paper experiments use **three non-overlapping U.S. six-asset portfolios**
 (18 distinct assets across mainstream tech, defensive blue-chip, and
 high-volatility growth regimes). Training uses **2013-01-02 through
-2018-12-31**; download panels through **2024-01-01** so held-out test windows
-through 2023 are covered.
+2018-12-31**; download panels through **2024-01-01** so held-out test windows through 2023 are covered.
 
 ### Portfolio Panels
 
