@@ -49,12 +49,11 @@ built on a FinRL-compatible training stack.
 
 ## Recommended Hardware
 
-The paper reports experiments on **Intel Core i9-13980HX + NVIDIA GeForce RTX
-4090 Laptop GPU**. The other devices below work as well, if you prefer.
+The three device profiles below are the hardware we used in our experiments.
 
 | Profile | Configuration |
 | --- | --- |
-| **Reference (paper)** | Intel Core i9-13980HX (13th Gen, Raptor Lake) + NVIDIA GeForce RTX 4090 Laptop GPU |
+| **RTX 4090 laptop** | Intel Core i9-13980HX (13th Gen, Raptor Lake) + NVIDIA GeForce RTX 4090 Laptop GPU |
 | **Apple Silicon laptop** | MacBook Pro 13-inch (2020), Model MJ123ZP/A (`MacBookPro17,1`) + Apple M1 |
 | **Multi-GPU server** | Intel Xeon Platinum 8581C + 4× NVIDIA L40 (48 GB) |
 
