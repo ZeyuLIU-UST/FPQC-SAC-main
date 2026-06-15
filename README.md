@@ -63,9 +63,7 @@ The three device profiles below are the hardware we used in our experiments.
   when GPU quantum backends are enabled. The paper experiments used this
   stack for all three portfolio CSVs listed in
   [Data Download & Quick Start](#data-download--quick-start).
-- On Apple Silicon, PennyLane falls back to CPU. We smoke-tested the defensive
-  portfolio (`repro_defensive_blue_chip_portfolio_2013_2023.csv`) on
-  `MacBookPro17,1` + M1 during release QA.
+- On Apple Silicon, PennyLane falls back to CPU. 
 - On the 4× L40 node, shard the 20-seed
   [`configs/seeds_repro_20.txt`](configs/seeds_repro_20.txt) protocol on CUDA
   (one seed block per GPU) when replaying the full three-portfolio suite at
