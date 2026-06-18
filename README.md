@@ -1,6 +1,10 @@
 <h1 align="center">FPQC-SAC</h1>
 
 <p align="center">
+  <a href="https://arxiv.org/abs/2606.10448"><img src="https://img.shields.io/badge/Paper-arXiv%3A2606.10448-b31b1b?logo=arxiv&logoColor=white" alt="Paper on arXiv"/></a>
+</p>
+
+<p align="center">
   <strong>Mitigating Bias in Low-SNR Financial Reinforcement Learning via Quantum Representations</strong>
 </p>
 
@@ -13,7 +17,6 @@
   <img src="https://img.shields.io/badge/SAC-Soft%20Actor--Critic-5B8DEF" alt="SAC"/>
   <img src="https://img.shields.io/badge/Built--on-finrl-2EA44F" alt="Built on vendored finrl/"/>
   <img src="https://img.shields.io/badge/License-MIT-blue" alt="License MIT"/>
-  <a href="https://arxiv.org/abs/2606.10448"><img src="https://img.shields.io/badge/arXiv-2606.10448-b31b1b?logo=arxiv&logoColor=white" alt="arXiv"/></a>
 </p>
 
 <p align="center">
@@ -535,9 +538,7 @@ time depending on seed count, timesteps, and hardware.
 
 ## Citation
 
-If you find this work useful, please cite our paper:
-
-**Paper:** [Mitigating Bias in Low-SNR Financial Reinforcement Learning via Quantum Representations](https://arxiv.org/abs/2606.10448) (arXiv:2606.10448)
+If you find this work useful, please cite:
 
 ```bibtex
 @misc{liu2026mitigatingbiaslowsnrfinancial,
