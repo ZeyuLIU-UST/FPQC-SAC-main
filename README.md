@@ -13,6 +13,7 @@
   <img src="https://img.shields.io/badge/SAC-Soft%20Actor--Critic-5B8DEF" alt="SAC"/>
   <img src="https://img.shields.io/badge/Built--on-finrl-2EA44F" alt="Built on vendored finrl/"/>
   <img src="https://img.shields.io/badge/License-MIT-blue" alt="License MIT"/>
+  <a href="https://arxiv.org/abs/2606.10448"><img src="https://img.shields.io/badge/arXiv-2606.10448-b31b1b?logo=arxiv&logoColor=white" alt="arXiv"/></a>
 </p>
 
 <p align="center">
@@ -42,6 +43,7 @@ built on a FinRL-compatible training stack.
 - [Analysis Scripts](#analysis-scripts)
 - [Acknowledgements](#acknowledgements)
 - [Development Checks](#development-checks)
+- [Citation](#citation)
 
 </details>
 
@@ -528,3 +530,23 @@ python -m py_compile run.py fpqc_sac/experiment_runner.py models.py
 
 The full training run requires the processed market dataset and may take a long
 time depending on seed count, timesteps, and hardware.
+
+---
+
+## Citation
+
+If you find this work useful, please cite our paper:
+
+**Paper:** [Mitigating Bias in Low-SNR Financial Reinforcement Learning via Quantum Representations](https://arxiv.org/abs/2606.10448) (arXiv:2606.10448)
+
+```bibtex
+@misc{liu2026mitigatingbiaslowsnrfinancial,
+  title={Mitigating Bias in Low-SNR Financial Reinforcement Learning via Quantum Representations},
+  author={Zeyu Liu and Xuanzhi Feng and Sing Kwong Lai and Yuanchen Gao and Xiaoyi Pang and Hualei Zhang and Jingcai Guo and Jie Zhang and Song Guo},
+  year={2026},
+  eprint={2606.10448},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG},
+  url={https://arxiv.org/abs/2606.10448},
+}
+```
